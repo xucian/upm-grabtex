@@ -66,24 +66,12 @@ namespace com.xucian.upm.grabtex
 
 		async UniTask<Texture2D> DownloadImageAsync(string url, string contentType, CancellationToken cancellation)
 		{
-			try
-			{
-				contentType ??= await GetContentTypeAsync(url);
-				Texture2D tex;
+			contentType ??= await GetContentTypeAsync(url);
 
-				if (contentType.StartsWith("image/webp"))
-					tex = await DownloadWebpImageAsync(url, cancellation);
-				else
-					tex = await DownloadRegularImageAsync(url, cancellation);
+			if (contentType.StartsWith("image/webp"))
+				return await DownloadWebpImageAsync(url, cancellation);
 
-				return tex;
-			}
-			catch (Exception e)
-			{
-				Debug.Log(e);
-			}
-
-			return null;
+			return await DownloadRegularImageAsync(url, cancellation);
 		}
 
 		async UniTask<string> FindImageInHtmlAsync(string url, CancellationToken cancellation)

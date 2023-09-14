@@ -1,0 +1,11 @@
+*.py
+*.py.meta
+*.sln
+*.sln.meta
+*.csproj
+*.csproj.meta
+*.csproj.user
+*.csproj.user.meta
+*.log
+*.log.meta
+.gitignore

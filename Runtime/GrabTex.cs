@@ -7,11 +7,11 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using WebP;
 
-namespace Rockstart.Unity.Tut.Chat
+namespace com.xucian.upm.grabtex
 {
 	public class GrabTex
 	{
-		public async UniTask LoadImageAsync(string url, RawImage into, CancellationToken cancellation)
+		public async UniTask Async(string url, RawImage into, CancellationToken cancellation)
 		{
 			var imgInfo = await FindImageUrlAndContentTypeAsync(url, cancellation);
 			if (imgInfo.url == null || cancellation.IsCancellationRequested)
@@ -162,7 +162,7 @@ namespace Rockstart.Unity.Tut.Chat
 
 		void SetRequestHeaders(UnityWebRequest req)
 		{
-			req.SetRequestHeader("User-Agent", "rockstartai.tut.unity.chat");  // some websites return "403 forbidden" if no User-Agent header
+			req.SetRequestHeader("User-Agent", "com.xucian.upm.grabtex");  // some websites return "403 forbidden" if no User-Agent header
 		}
 
 		Texture2D CreateTextureFromWebpRequest(UnityWebRequest req)

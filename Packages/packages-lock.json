@@ -227,8 +227,8 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-        "com.netpyoung.webp": "https://github.com/netpyoung/unity.webp.git?path=unity_project/Assets/unity.webp#0.3.9",
+        "com.cysharp.unitask": "2.4.0",
+        "com.netpyoung.webp": "0.3.9",
         "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0"
       }
     },

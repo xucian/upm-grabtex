@@ -8,7 +8,7 @@ Add it to your manifest.json (replace vX.X.X with the version you want, for ex. 
 {
   "dependencies": {
 	..,
-	"com.xucian.upm.grabtex": "https://github.com/xucian/upm-grabtex#vX.X.X"
+	"com.xucian.upm.grabtex": "https://github.com/xucian/upm-grabtex#vX.X.X-upm"
   }
 }
 ```

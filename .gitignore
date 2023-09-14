@@ -1,0 +1,16 @@
+/.vs
+*.log
+/bin
+/Temp
+/obj
+/Library
+/.vs
+*.apk
+/*.csproj
+/*.sln
+/Build
+*.log
+UserSettings/Layouts/default-2021.dwlt
+
+
+

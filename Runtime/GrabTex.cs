@@ -151,8 +151,9 @@ namespace com.xucian.upm.grabtex
 				return ct;
 
 			// Remove the query part
-			var uri = new Uri(url);
-			url = url.Substring(0, url.Length - uri.Query.Length);
+			int queryCharIdx = url.IndexOf('?');
+			if (queryCharIdx != -1)
+				url = url[..queryCharIdx];
 
 			if (url.EndsWith(".webp"))
 				return "image/webp";

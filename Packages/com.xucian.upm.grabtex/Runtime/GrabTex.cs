@@ -11,13 +11,9 @@ namespace com.xucian.upm.grabtex
 {
 	public class GrabTex
 	{
-		public async UniTask Async(string url, RawImage into, CancellationToken cancellation)
+		public async UniTask IntoAsync(string url, RawImage into, CancellationToken cancellation)
 		{
-			var imgInfo = await FindImageUrlAndContentTypeAsync(url, cancellation);
-			if (imgInfo.url == null || cancellation.IsCancellationRequested)
-				return;
-
-			var tex = await DownloadImageAsync(imgInfo.url, imgInfo.contentType, cancellation);
+			var tex = await Async(url, cancellation);
 			if (!tex)
 				return;
 
@@ -28,6 +24,15 @@ namespace com.xucian.upm.grabtex
 			}
 
 			into.texture = tex;
+		}
+
+		public async UniTask<Texture2D> Async(string url, CancellationToken cancellation)
+		{
+			var imgInfo = await FindImageUrlAndContentTypeAsync(url, cancellation);
+			if (imgInfo.url == null || cancellation.IsCancellationRequested)
+				return null;
+
+			return await DownloadImageAsync(imgInfo.url, imgInfo.contentType, cancellation);
 		}
 
 		async UniTask<(string url, string contentType)> FindImageUrlAndContentTypeAsync(string url, CancellationToken cancellation)

@@ -37,7 +37,7 @@ namespace com.xucian.upm.grabtex
 
 		async UniTask<(string url, string contentType)> FindImageUrlAndContentTypeAsync(string url, CancellationToken cancellation)
 		{
-			var contentType = await GetContentTypeAsync(url);
+			var contentType = await GuessRealContentTypeAsync(url);
 			string imageContentType;
 			string imageUrl;
 
@@ -56,7 +56,7 @@ namespace com.xucian.upm.grabtex
 				if (cancellation.IsCancellationRequested)
 					return (null, null);
 
-				imageContentType = await GetContentTypeAsync(imageUrl);
+				imageContentType = await GuessRealContentTypeAsync(imageUrl);
 			}
 			else
 			{
@@ -71,9 +71,9 @@ namespace com.xucian.upm.grabtex
 
 		async UniTask<Texture2D> DownloadImageAsync(string url, string contentType, CancellationToken cancellation)
 		{
-			contentType ??= await GetContentTypeAsync(url);
+			contentType ??= await GuessRealContentTypeAsync(url);
 
-			if (contentType.StartsWith("image/webp"))
+			if (contentType.StartsWith("image/webp") || url.EndsWith(".webp"))
 				return await DownloadWebpImageAsync(url, cancellation);
 
 			return await DownloadRegularImageAsync(url, cancellation);
@@ -141,6 +141,32 @@ namespace com.xucian.upm.grabtex
 
 			if (req.result != UnityWebRequest.Result.Success)
 				Debug.Log("Error: " + req.error);
+		}
+
+		async UniTask<string> GuessRealContentTypeAsync(string url)
+		{
+			// Prioritize the server's returned MIME type
+			var ct = await GetContentTypeAsync(url);
+			if (ct.StartsWith("image/"))
+				return ct;
+
+			// Remove the query part
+			var uri = new Uri(url);
+			url = url.Substring(0, url.Length - uri.Query.Length);
+
+			if (url.EndsWith(".webp"))
+				return "image/webp";
+
+			if (url.EndsWith(".gif"))
+				return "image/gif";
+
+			if (url.EndsWith(".jpeg") || url.EndsWith(".jpg"))
+				return "image/jpeg";
+
+			if (url.EndsWith(".bmp"))
+				return "image/bmp";
+
+			return ct;
 		}
 
 		async UniTask<string> GetContentTypeAsync(string url)

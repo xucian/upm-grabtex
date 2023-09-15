@@ -1,7 +1,7 @@
 {
   "displayName": "grabtex",
   "name": "com.xucian.upm.grabtex",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "unity": "2022.1",
   "description": "Download images, including those in HTML meta-tag. Best use case is passing it URLs from a chat where you want to display a preview of the target destination.",
   "keywords": ["image downloader", "download", "image grabber", "grabtex", "html preview"],

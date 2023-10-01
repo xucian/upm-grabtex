@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEngine;
@@ -11,6 +12,16 @@ namespace com.xucian.upm.grabtex
 {
 	public class GrabTex
 	{
+		readonly Dictionary<string, string> EXTENSION_TO_MIME = new()
+		{
+			{".webp", "image/webp"},
+			{".gif",  "image/gif"},
+			{".jpeg", "image/jpeg"},
+			{".jpg",  "image/jpeg"},
+			{".bmp",  "image/bmp"}
+		};
+
+
 		public async UniTask IntoAsync(string url, RawImage into, CancellationToken cancellation)
 		{
 			var tex = await Async(url, cancellation);
@@ -92,19 +103,38 @@ namespace com.xucian.upm.grabtex
 					return null;
 				}
 
-				string pageContent = req.downloadHandler.text;
-				return ParseHtmlForOGImage(pageContent);
+				string html = req.downloadHandler.text;
+				return ParseHtmlForOGImage(html) ?? ParseHtmlForFirstSupportedImage(html);
 			}
 		}
 
-		string ParseHtmlForOGImage(string htmlContent)
+		string ParseHtmlForOGImage(string html)
 		{
-			var match = Regex.Match(htmlContent, "<meta property=\"og:image\" content=\"(.*?)\"");
+			// Building a pattern to match any of the given extensions
+			var extensionsPattern = string.Join('|', EXTENSION_TO_MIME.Keys);
+			var pattern = $"<meta property=\"og:image\" content=\"(.*?({extensionsPattern}))(?:\\?[^\"']*)?\"";
+
+			var match = Regex.Match(html, pattern, RegexOptions.IgnoreCase);
 			if (!match.Success)
 				return null;
 
+			// Use Groups[1].Value to get the content of the `content` attribute
 			var ogImageUrl = match.Groups[1].Value;
 			return ogImageUrl;
+		}
+
+		string ParseHtmlForFirstSupportedImage(string htmlContent)
+		{
+			// Building a pattern to match any of the given extensions
+			var extensionsPattern = string.Join('|', EXTENSION_TO_MIME.Keys);
+			var pattern = $"<img[^>]*?\\s?src=\"(.*?({extensionsPattern}))(?:\\?[^\"']*)?\"";
+
+			var match = Regex.Match(htmlContent, pattern, RegexOptions.IgnoreCase);
+			if (!match.Success)
+				return null;
+
+			var imageUrl = match.Groups[1].Value;
+			return imageUrl;
 		}
 
 		async UniTask<Texture2D> DownloadRegularImageAsync(string url, CancellationToken cancellation)
@@ -134,7 +164,14 @@ namespace com.xucian.upm.grabtex
 
 		async UniTask SendRequest(UnityWebRequest req, CancellationToken cancellation)
 		{
+			//try
+			//{
 			await req.SendWebRequest();
+			//}
+			//catch (Exception e)
+			//{
+			//	Debug.LogError(req.downloadHandler.error);
+			//}
 
 			if (cancellation.IsCancellationRequested)
 				return;
@@ -146,28 +183,34 @@ namespace com.xucian.upm.grabtex
 		async UniTask<string> GuessRealContentTypeAsync(string url)
 		{
 			// Prioritize the server's returned MIME type
-			var ct = await GetContentTypeAsync(url);
-			if (ct.StartsWith("image/"))
-				return ct;
+			string serverReturnedCt = null;
+			try 
+			{
+				var ct = await GetContentTypeAsync(url);
+				if (ct.StartsWith("image/"))
+					return ct;
+
+				serverReturnedCt = ct;
+			}
+			catch (UnityWebRequestException)
+			{
+				// Some sites return 404 on HEAD requests, but we can still assume they're valid html, and we'll be right more often than we'll be wrong
+				serverReturnedCt = "text/html";
+			}
 
 			// Remove the query part
 			int queryCharIdx = url.IndexOf('?');
 			if (queryCharIdx != -1)
 				url = url[..queryCharIdx];
 
-			if (url.EndsWith(".webp"))
-				return "image/webp";
+			// Prioritize extension over returned CT
+			foreach (var item in EXTENSION_TO_MIME)
+			{
+				if (url.EndsWith(item.Key))
+					return item.Value;
+			}
 
-			if (url.EndsWith(".gif"))
-				return "image/gif";
-
-			if (url.EndsWith(".jpeg") || url.EndsWith(".jpg"))
-				return "image/jpeg";
-
-			if (url.EndsWith(".bmp"))
-				return "image/bmp";
-
-			return ct;
+			return serverReturnedCt;
 		}
 
 		async UniTask<string> GetContentTypeAsync(string url)
@@ -182,7 +225,11 @@ namespace com.xucian.upm.grabtex
 
 		void SetRequestHeaders(UnityWebRequest req)
 		{
-			req.SetRequestHeader("User-Agent", "com.xucian.upm.grabtex");  // some websites return "403 forbidden" if no User-Agent header
+			req.SetRequestHeader("User-Agent", "Homemade Browser with Love");  // some websites return "403 forbidden" if no User-Agent header
+			req.SetRequestHeader("Accept", "*/*");  // some websites return "404 not found" if no Accept header
+			req.SetRequestHeader("Accept-Encoding", "identity");  // some websites return "404 not found" if no Accept-Encoding header
+			req.SetRequestHeader("Connection", "keep-alive");  // some websites return "404 not found" if no Connection header
+			req.SetRequestHeader("Cache-Control", "no-cache");  // some websites return "404 not found" if no Cache-Control header
 		}
 
 		Texture2D CreateTextureFromWebpRequest(UnityWebRequest req)

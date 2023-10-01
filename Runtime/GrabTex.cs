@@ -227,9 +227,6 @@ namespace com.xucian.upm.grabtex
 		{
 			req.SetRequestHeader("User-Agent", "Homemade Browser with Love");  // some websites return "403 forbidden" if no User-Agent header
 			req.SetRequestHeader("Accept", "*/*");  // some websites return "404 not found" if no Accept header
-			req.SetRequestHeader("Accept-Encoding", "identity");  // some websites return "404 not found" if no Accept-Encoding header
-			req.SetRequestHeader("Connection", "keep-alive");  // some websites return "404 not found" if no Connection header
-			req.SetRequestHeader("Cache-Control", "no-cache");  // some websites return "404 not found" if no Cache-Control header
 		}
 
 		Texture2D CreateTextureFromWebpRequest(UnityWebRequest req)
